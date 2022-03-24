@@ -1,6 +1,7 @@
 install.packages('swirl')
 library(swirl)
 library(curl)
+library(magrittr)
 
 # 01: Completed
 swirl()
@@ -73,6 +74,28 @@ try(uninstall_course("Getting and Cleaning Data"), silent=TRUE)
 file.choose()
 file.show('/Library/Frameworks/R.framework/Versions/4.1/Resources/library/swirl/Courses/Getting_and_Cleaning_Data/Manipulating_Data_with_dplyr/lesson.yaml')
 ?Comparison
+lifecycle::last_lifecycle_warnings()
+pack_sum <- summarize(by_package,
+                      count = n(),
+                      unique = n_distinct(ip_id),
+                      countries = n_distinct(country),
+                      avg_bytes = mean(size))
+?`magrittr-package`
+result3 <-
+  cran %>%
+  group_by(package) %>%
+  summarize(count = n(),
+    unique = n_distinct(ip_id),
+    countries = n_distinct(country),
+    avg_bytes = mean(size)
+  ) %>%
+  filter(countries > 60) %>%
+  arrange(desc(countries), avg_bytes)
+# Note the minus sign before grade, which says we want to gather all columns EXCEPT grade
+students |> gather(sex, count, -grade)
+
+
+
 
 
 
