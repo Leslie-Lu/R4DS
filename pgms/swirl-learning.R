@@ -1,4 +1,4 @@
-install.packages('swirl')
+# install.packages('swirl')
 library(swirl)
 library(curl)
 library(magrittr)
@@ -8,6 +8,7 @@ swirl()
 install_course('Advanced R Programming')
 
 Sys.Date()
+Sys.getlocale('LC_TIME')
 evaluate <- function(func, dat){
   e= func(dat)
   return(e)
@@ -52,7 +53,7 @@ swirl::install_course("Exploratory Data Analysis")
 # 04: waiting
 # Statistical Inference
 
-# 05: in progress
+# 05: Completed
 swirl::install_course("Getting and Cleaning Data")
 remove.packages('tidyverse')
 remove.packages('dplyr')
@@ -93,6 +94,86 @@ result3 <-
   arrange(desc(countries), avg_bytes)
 # Note the minus sign before grade, which says we want to gather all columns EXCEPT grade
 students |> gather(sex, count, -grade)
+students3 %>%
+  gather(class, grade, class1:class5, na.rm= TRUE) %>%
+  print
+res |> separate(col = sex_class, into = c('sex', 'class'))
+students2 %>%
+  gather(sex_class, count, -grade) %>%
+  separate(sex_class, c("sex", "class")) %>%
+  print
+# Use the contains() function, which you'll find detailed in 'Special functions' section of ?select
+sat %>%
+  select(-contains('total')) %>%
+  gather(key = part_sex, value = count, -score_range) %>%
+  separate(col = part_sex, into = c('part', 'sex')) |> 
+  print()
+sat %>%
+  select(-contains("total")) %>%
+  gather(part_sex, count, -score_range) %>%
+  separate(part_sex, c("part", "sex")) %>%
+  group_by(part, sex) |> 
+  mutate(
+    total= sum(count),
+    prop= count/ total
+  ) %>% print
+students3 %>%
+  gather(class, grade, class1:class5, na.rm = TRUE) %>%
+  spread(test, grade) %>%
+  print
+parse_number('class5')
+students3 %>%
+  gather(class, grade, class1:class5, na.rm = TRUE) %>%
+  spread(test, grade) %>%
+  mutate(class= parse_number(class)) |> 
+  print()
+student_info <- students4 %>%
+  select(id, name, sex) %>%
+  unique() |> 
+  print()
+bind_rows(passed, failed)
+help(package = lubridate)
+this_day <- today()
+this_day
+year(this_day)
+month(this_day)
+day(this_day)
+wday(this_day) #the day of week
+wday(this_day, label = TRUE)
+this_moment <- now()
+this_moment
+update(this_moment, hours= 8, minutes= 34, seconds= 55) #The update() function allows us to update one or more components of a date-time
+hour(this_moment)
+minute(this_moment)
+second(this_moment)
+my_date <- ymd('1989-05-17')
+my_date
+class(my_date) #ymd() took a character string as input and returned an object of class POSIXct
+ymd('1989 May 17')
+mdy('March 12, 1975')
+dmy(25081985) #Parse 25081985, which is supposed to represent the 25th day of August 1985
+dmy('25081985')
+ymd("192012") #All formats failed to parse. No formats found
+ymd("1920/1/2") #two dashes
+ymd("1920-1-2") #two forward slashes
+ymd_hms('2014-08-23 17:23:02')
+hms("03:22:14") #hms() stands for hours (h), minutes (m), and seconds (s)
+nyc <- now(tzone = 'America/New_York')
+nyc
+depart <- nyc+ days(2)
+depart
+depart <- update(depart, hours= 17, minutes= 34)
+depart
+arrive <- depart+ hours(15)+ minutes(50)
+arrive <- with_tz(arrive, tzone = 'Asia/Hong_Kong')
+arrive
+last_time <- mdy('June 17, 2008', tz = 'Singapore')
+last_time
+how_long <- interval(start = last_time, end = arrive)
+as.period(how_long)
+
+# 06: in progress
+
 
 
 
