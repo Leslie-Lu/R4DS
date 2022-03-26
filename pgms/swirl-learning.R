@@ -64,10 +64,10 @@ hadleyverse= gh_list_packages(username= "hadley")[1:3,]
 repos= with(hadleyverse, paste(username, package_name, sep="/"))  
 githubinstall(repos)
 devtools::install_github("tidyverse/tidyverse")
-library(tidyverse)
+suppressMessages(library(tidyverse))
 tidyverse_update()
 packageVersion('dplyr')
-devtools::install_version('dplyr', version = '1.0.0')
+devtools::install_version('dplyr', version = '1.0.8')
 packageVersion('swirl')
 packageVersion('yaml')
 devtools::install_github('viking/r-yaml')
@@ -173,6 +173,36 @@ how_long <- interval(start = last_time, end = arrive)
 as.period(how_long)
 
 # 06: in progress
+swirl::install_course("MARSYS_Data_analysis_with_R")
+# ?lm
+# sum_lm= summary(lm.D9)
+# sum_lm$coefficients[,'Pr(>|t|)'] |> round(3) |> format(scientific = F)
+# library(gtsummary)
+# tbl_regression(
+#   lm.D9, 
+#   pvalue_fun = function(x) {
+#     if_else(
+#       is.na(x), 
+#       NA_character_,
+#       if_else(x < 0.001, format(x, digits = 3, scientific = TRUE), format(round(x, 3), scientific = F))
+#     )
+#   } 
+# )
+library(swirl)
+swirl()
+c(1, FALSE) #double vector
+# The infite set of numbers cannot be reduced to simply 2 states whereas TRUE or FALSE can easily be coerced into the two
+# numbers 0 and 1. As the value 1 in this vector is not specified explicitly as integer the vector coerces both to type double
+c(TRUE, 1L) #integer vector
+v1 <- c(10, 5, 100); v2 <- 1:5
+(v1*v2)*3
+x2[5]
+x2[1:4] |> sum()
+x2[-c(3, 15)] |> sum()
+# What happens when you subset with a name that doesn’t exist?
+# NA returned
+sum((x3- mean(x3))^2)
+str(lm_list, max.level = 1)
 
 
 
