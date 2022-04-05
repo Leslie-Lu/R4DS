@@ -1,0 +1,180 @@
+---
+title: "Modelling"
+date: '2022-04-04'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Exercise 1
+## (a)
+
+### 1.1.1 Examining the Data
+As a first step, we obtain summary statistics for the variables in `Darts.csv`:
+```{r}
+suppressMessages(library(tidyverse))
+suppressMessages(library(magrittr))
+suppressMessages(library(car))
+Darts= read.csv('Darts.csv') %>% as_tibble()
+Darts$Name %<>% as.factor() 
+summary(Darts)
+```
+
+Secondly, we view distribution of the variable `Weight`:
+```{r, fig.width=10, fig.height=5}
+with(Darts, {
+  hist(Weight, freq=FALSE, breaks="FD", main="Density Estimation of Weight (g)")
+  lines(density(Weight, from=0), lwd=3, lty=2)
+  lines(adaptiveKernel(Weight, from=0), lwd=2, lty=1)
+  rug(Weight)
+  legend("topright", c("Fixed bandwidth", "Adaptive bandwidth"),
+         lty=2:1, lwd=2, inset=.02)
+  box()
+})
+qqPlot(~ Weight, data=Darts, id=list(n=3))
+```
+Both nonparametric density estimates and the histogram suggest a mode at around 5g, and all show that the distribution of weight is right- skewed. The fixed-bandwidth kernel estimate has more wiggle at the right where data are sparse, and the histogram is rough in this region, while the adaptive- kernel estimator is able to smooth out the density estimate in the low-density region. And because many points, especially at the left of the graph, are outside the confidence bounds, we have evidence that the distribution of weight is not like a sample from a normal population.
+
+Then, we use scatterplots to provide summaries of the conditional distribution of a numeric response variable given a numeric predictor. The `scatterplotMatrix()` function produces scatterplots for all paris of numeric variables.
+```{r, fig.width=10, fig.height=5}
+scatterplotMatrix(~ Weight + Length + Width + Thickness, data= Darts)
+```
+
+From the above graphs, we apply the log transformation on the variable Weight, Length and Width.
+```{r, fig.width=10, fig.height=5, echo=FALSE}
+scatterplotMatrix(~ log(Weight) + log(Length) + log(Width) + Thickness, data= Darts, smooth=list (span=0.7))
+```
+
+
+We can further explore the relationship between Weight and Name in the Darts using parallel boxplots.
+```{r, fig.width=10, fig.height=5}
+Boxplot(Weight ~ Name, data=Darts, main="(a)")
+library(plotrix)
+means= Tapply(Weight ~ Name, mean, data=Darts) 
+sds= Tapply(Weight ~ Name, sd, data=Darts) 
+{plotCI(1:5, means, sds, xaxt="n", xlab="Dart point type",
+   ylab="Weight (g)", main="(b)",
+   ylim=range(Darts$Weight))
+lines(1:5, means)
+axis(1, at=1:5, labels = names(means))}
+```
+
+## 1.1.2 Regression Analysis
+
+We use the`lm()` function to fit a linear regression model to the data:
+```{r}
+(model_full <- lm(log(Weight) ~ log(Length) + log(Width) + Thickness + Name, data=Darts)) %>% summary()
+```
+
+We use stepwise regression to select best model for the variable Weight. We pass the full model to `step` function. It iteratively searches the full scope of variables in backwards directions by default, if scope is not given. It performs multiple iteractions by droping one X variable at a time. In each iteration, multiple models are built by dropping each of the X variables at a time. The AIC of the models is also computed and the model that yields the lowest AIC is retained for the next iteration.
+
+```{r}
+selectedMod <- step(model_full)
+summary(selectedMod)
+```
+
+## 1.1.3 Regression Diagnostics
+
+The `rstudent()` function returns studentized residuals, and the `densityPlot()` function fits an adaptive kernel density estimator to the distribution of the studentized residuals:
+```{r fig.height=5, fig.width=5}
+densityPlot(rstudent(selectedMod))
+```
+
+A `qqPlot()` can be used as a check for nonnormal errors, comparing the studentized residuals to a t-distribution:
+```{r fig.height=5,fig.width=5}
+qqPlot(selectedMod)
+```
+
+This next function tests for outliers in the regression:
+```{r}
+outlierTest(selectedMod)
+```
+
+This graph displays influence measures in index plots:
+```{r fig.height=6,fig.width=6}
+influenceIndexPlot(selectedMod, vars=c("Cook", "hat"), 
+    id=list(n=3))
+```
+
+Added-variable plots for the regression, looking for influential cases:
+
+```{r fig.height=4, fig.width=8}
+avPlots(selectedMod, 
+    id=list(cex=0.75, n=3, method="mahal"))
+```
+
+Component-plus-residual plots for the regression, checking for nonlinearity:
+
+```{r fig.height=4, fig.width=8}
+crPlots(selectedMod, smooth=list(span=0.7))
+```
+
+Tests for non-constant error variance:
+
+```{r}
+ncvTest(selectedMod)
+ncvTest(selectedMod, var.formula= ~ log(Length) + log(Width) + Thickness + 
+    Name)
+```
+
+Removing the 64th and 91th rows:
+
+```{r}
+whichNames(c("64", "91"), Darts)
+selectedMod_2 <- update(selectedMod, subset=-c(64, 91))
+summary(selectedMod_2)
+```
+
+Comparing the regressions with and without these two cases:
+```{r}
+compareCoefs(selectedMod, selectedMod_2)
+```
+
+## (b)
+
+The 90% prediction interval for a new observation of Weight for a Dart of type Pedernales with Length = 50, Width = 20 and Thickness = 6 is (1.460714, 2.054469).
+```{r}
+new_obs <- tibble(
+  Length = 50,
+  Width = 20,
+  Thickness = 6,
+  Name= c('Pedernales')
+)
+predict(selectedMod_2, newdata = new_obs, interval = "prediction", level = .9)
+```
+
+# Exercise 2
+## (a)
+As a first step, we obtain summary statistics for the dataset `wheat`:
+```{r}
+wheat= read.table('wheat.txt', sep=" ") %>% as_tibble()
+wheat$species= ifelse(wheat$species == "Rosa", 1, 0) %>% factor()
+summary(wheat)
+```
+
+Because the data follow the binomial distribution, the objective is to model the success probability p as a function of the covariates, i.e., to predict the species of the wheat seed based on the measurements of area, perimeter, compactness and asymmetry. We choose logistic regression from a series of generalised linear models.
+
+```{r}
+model= glm(species ~., data = wheat, family = "binomial")
+model %>% summary()
+```
+
+## (b)
+
+The probability that a seed with area = 13, perimeter=10, compactness=0.75, asymmetry=2 is of species Rosa is 9.472809e-14.
+```{r}
+new_seed <- tibble(
+  area = 13,
+  perimeter=10,
+  compactness=0.75,
+  asymmetry=2
+)
+predict(model, newdata = new_seed, type = 'response')
+```
+
+Perimeter=10 and compactness=0.75 are less than the minimum of these two variables in the data, respectively, which are not used in modelling the logistic regression. This could be harm the confidence of the prediction.
+
+
+

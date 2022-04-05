@@ -204,7 +204,10 @@ x2[-c(3, 15)] |> sum()
 sum((x3- mean(x3))^2)
 str(lm_list, max.level = 1)
 
-
+# install.packages("alr4")
+library(alr4)
+alr4Web("primer")
+# car::carWeb(setup = TRUE)
 
 
 
