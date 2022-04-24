@@ -1,0 +1,14 @@
+Package: npar
+Type: Package
+Title: Nonparametric group comparisons
+Version: 2.0
+Date: 2022-03-14
+Author: Leslie Lu
+Maintainer: Leslie Lu <github.com/Leslie-Lu>
+Description: This package assesses group differences using nonparametric
+    statistics. Currently a one-way layout is supported. Kruskal-Wallis tests
+    followed by pairwise Wilcoxon tests are provided. p-values are adjusted
+    for multiple comparisons using the p.adjust() function.
+    Results are plotted via annotated boxplots.
+LazyData: true
+License: GPL-3
